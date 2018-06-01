@@ -1,0 +1,26 @@
+name: SX-Stats
+main: github.saukiya.sxstats.SXStats
+version: 1.0.0
+author: 
+- Saukiya
+softdepend: 
+- PlaceholderAPI
+- HolographicDisplays
+- RPGInventory
+- MythicMobs
+
+commands:
+   sxstats:
+      description: This is a permission command.
+      # 命令使用方法，当命令被错误使用时将显示这个
+      usage: /<command> test
+      aliases: [sx]
+permissions:
+  sxstats.admin:
+    description: ADMIN
+    default: op
+    children:
+      sxstats.reload: true
+  sxstats.reload:
+    description: RELOAD
+    default: op
