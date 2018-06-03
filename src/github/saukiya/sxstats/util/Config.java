@@ -18,12 +18,20 @@ public class Config {
 	final public static String ITEM_UPDATE_ENABLED = "ItemUpdate.Enabled";
 	final public static String HOLOGRAPHIC_ENABLED = "Holographic.Enabled";
 	final public static String HOLOGRAPHIC_TICK = "Holographic.Tick";
-	final public static String HEALTH_BOSSBAR_ENABLED = "HealthBossBar.Enabled";
-	final public static String HEALTH_BOSSBAR_FORMAT = "HealthBossBar.Format";
-	final public static String HEALTH_BOSSBAR_DISPLAY_TIME = "HealthBossBar.DisplayTime";
+	final public static String HEALTH_NAME_VISIBLE_ENABLED = "Health.NameVisible.Enabled";
+	final public static String HEALTH_NAME_VISIBLE_DISPLAY_TIME = "Health.NameVisible.DisplayTime";
+	final public static String HEALTH_NAME_VISIBLE_SIZE = "Health.NameVisible.Size";
+	final public static String HEALTH_NAME_VISIBLE_CURRENT = "Health.NameVisible.Current";
+	final public static String HEALTH_NAME_VISIBLE_LOSS = "Health.NameVisible.Loss";
+	final public static String HEALTH_NAME_VISIBLE_PREFIX = "Health.NameVisible.Prefix";
+	final public static String HEALTH_NAME_VISIBLE_SUFFIX = "Health.NameVisible.Suffix";
+	final public static String HEALTH_BOSSBAR_ENABLED = "Health.BossBar.Enabled";
+	final public static String HEALTH_BOSSBAR_FORMAT = "Health.BossBar.Format";
+	final public static String HEALTH_BOSSBAR_DISPLAY_TIME = "Health.BossBar.DisplayTime";
 	final public static String HEALTH_SCALED_ENABLED = "HealthScaled.Enabled";
 	final public static String HEALTH_SCALED_VALUE = "HealthScaled.Value";
 	final public static String ITEM_DISPLAY_NAME = "ItemDisplayName";
+	final public static String DAMAGE_CALCULATION_TO_EVE = "DamageCalculationToEVE";
 	final public static String DAMAGE_GAUGES = "DamageGauges";
 	final public static String BAN_SHIELD_INTERACT = "BanShieldInteract";
 	final public static String CLEAR_DEFAULT_ATTRIBUTE_THIS_PLUGIN = "ClearDefaultAttribute.ThisPlugin";
@@ -103,10 +111,12 @@ public class Config {
 	final public static String VALUE_TEARING = "Stats.Tearing.Value";
 
 	@Getter private static boolean itemUpdate;
+	@Getter private static boolean healthNameVisible;
 	@Getter private static boolean healthBossBar;
 	@Getter private static boolean healthScaled;
 	@Getter private static boolean holographic;
 	@Getter private static boolean itemDisplayName;
+	@Getter private static boolean damageCalculationToEVE;
 	@Getter private static boolean damageGauges;
 	@Getter private static boolean banShieldInsteract;
 	@Getter private static boolean clearDefaultAttributePlugin;
@@ -130,10 +140,12 @@ public class Config {
 		}
 		
 		itemUpdate = config.getBoolean(ITEM_UPDATE_ENABLED);
+		healthNameVisible = config.getBoolean(HEALTH_NAME_VISIBLE_ENABLED);
 		healthBossBar = config.getBoolean(HEALTH_BOSSBAR_ENABLED);
 		healthScaled = config.getBoolean(HEALTH_SCALED_ENABLED);
 		holographic = config.getBoolean(HOLOGRAPHIC_ENABLED);
 		itemDisplayName = config.getBoolean(ITEM_DISPLAY_NAME);
+		damageCalculationToEVE = config.getBoolean(DAMAGE_CALCULATION_TO_EVE);
 		damageGauges = config.getBoolean(DAMAGE_GAUGES);
 		clearDefaultAttributePlugin = config.getBoolean(CLEAR_DEFAULT_ATTRIBUTE_THIS_PLUGIN);
 		clearDefaultAttributeAll = config.getBoolean(CLEAR_DEFAULT_ATTRIBUTE_ALL);
@@ -155,6 +167,14 @@ public class Config {
 		// 全息显示
 		config.set(HOLOGRAPHIC_ENABLED, true);
 		config.set(HOLOGRAPHIC_TICK, 40);
+		// 血量头顶显示
+		config.set(HEALTH_NAME_VISIBLE_ENABLED, true);
+		config.set(HEALTH_NAME_VISIBLE_DISPLAY_TIME, 40);
+		config.set(HEALTH_NAME_VISIBLE_SIZE, 10);
+		config.set(HEALTH_NAME_VISIBLE_CURRENT, "❤");
+		config.set(HEALTH_NAME_VISIBLE_LOSS, "&7❤");
+		config.set(HEALTH_NAME_VISIBLE_PREFIX, "&8[&c");
+		config.set(HEALTH_NAME_VISIBLE_SUFFIX, "&8]");
 		// 血量显示
 		config.set(HEALTH_BOSSBAR_ENABLED, true);
 		config.set(HEALTH_BOSSBAR_FORMAT, "&a&l{0}:&8&l[&a&l{1}&7&l/&c&l{2}&8&l]");
@@ -162,8 +182,10 @@ public class Config {
 		// 血条压缩
 		config.set(HEALTH_SCALED_ENABLED, true);
 		config.set(HEALTH_SCALED_VALUE, 40);
-		// 物品显示名字
-		config.set(ITEM_DISPLAY_NAME, true);
+		// 怪V怪的属性计算
+		config.set(DAMAGE_CALCULATION_TO_EVE, false);
+		// 伤害计量器
+		config.set(DAMAGE_GAUGES, true);
 		// 伤害计量器
 		config.set(DAMAGE_GAUGES, true);
 		// 禁止盾牌右键

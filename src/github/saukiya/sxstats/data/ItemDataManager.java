@@ -201,9 +201,9 @@ public class ItemDataManager {
 	static void createItemData() {
         Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aCreate Item/Default.yml");
         YamlConfiguration itemData = new YamlConfiguration();
-        itemData.set("默认一.Name", "<s:DefaultPrefix>&c炎之洗礼 <s:DefaultSuffix>");
+        itemData.set("默认一.Name", "<s:DefaultPrefix>&c炎之洗礼 <s:DefaultSuffix> <l:Quality>");
         itemData.set("默认一.ID", 278);
-        itemData.set("默认一.Lore", Arrays.asList("&6限制职业: 剑士","&6限制手持: 主手","&c攻击力: +20 - 60","&b攻击速度: +50%","&d速度: +50%","&d点燃几率: +33%","&d撕裂几率: +10%","&6限制等级: <r:100_200>级","&7耐久度: <r:10_200>/200","&r","<s:DefaultLore>"));
+        itemData.set("默认一.Lore", Arrays.asList("&6品质等级: <s:<l:Quality>Color><l:Quality>","&6限制职业: 剑士","&6限制手持: 主手","&6限制等级: <s:<l:Quality>等级-10>级","&c攻击力: +<s:<l:Quality>攻击-10>","<s:<l:Quality>攻一-10>","<s:<l:Quality>攻二-10>","<s:<l:Quality>攻三-10>","<s:<l:Quality>攻四-10>","&r","&7耐久度: <r:30_200>/200"));
         itemData.set("默认一.Unbreakable", false);
         itemData.set("默认二.Name", "&c机械轻羽之靴");
         itemData.set("默认二.ID", 301);
@@ -219,53 +219,109 @@ public class ItemDataManager {
 		return itemMap.containsKey(itemName);
 	}
 	
+	/**
+	 * 专业获取变量三十年
+	 * 
+	 * @param 前缀
+	 * @param 后缀
+	 * @param 被读取的字符串
+	 * @return 被前后缀包围的列表 (不包括前后缀)
+	 */
+	public static List<String> getStringList(String prefix , String suffix ,String string){
+		List<String> stringList = new ArrayList<>();
+		if (string.contains(prefix)){
+			String[] args = string.split(prefix);
+			if (args.length > 1&& args[1].contains(suffix)){
+				for (int i = 1 ; i < args.length && args[i].contains(suffix) ; i++){
+					stringList.add(args[i].split(suffix)[0]);
+				}
+			}
+		}
+		return stringList;
+	}
+	
 	public static ItemStack getItem(String itemName,Player... players) {
 		if (itemMap.containsKey(itemName)) {
 			ItemStack item = itemMap.get(itemName).clone();
+			Map<String,String> lockRandomMap = new HashMap<>();
+			
 			if (item.hasItemMeta() && item.getItemMeta().hasLore()){
 				ItemMeta meta = item.getItemMeta();
 				if(meta.hasDisplayName() && Config.isRandomStringName()){
 					String name = meta.getDisplayName();
-					if(name.contains("<s:") && name.split("<s:").length > 1&& name.split("<s:")[1].contains(">")){
-						String replaceName = name;
-						for (int r = 1 ; r < name.split("<s:").length && name.split("<s:")[r].contains(">") ; r++){
-							String str1 = name.split("<s:")[r].split(">")[0];
-							List<String> randomList = RandomStringManager.getRandomList(str1);
-							if (randomList != null){
-								replaceName = replaceName.replace("<s:"+str1+">", randomList.get(new Random().nextInt(randomList.size())).replace("&", "§"));
+					List<String> replaceLockStringList = getStringList("<l:",">",name);
+					for(String str : replaceLockStringList){
+						if(lockRandomMap.containsKey(str)){
+							name = name.replace("<l:"+str+">", lockRandomMap.get(str));
+						}else {
+							String randomString = RandomStringManager.getRandomString(str);
+							if(randomString != null){
+								name = name.replace("<l:"+str+">", randomString);
+								// 记录到textMap中
+								lockRandomMap.put(str, randomString);
+							}
+							else {
+								name = name.replace("<l:"+str+">", "");
+						        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
 							}
 						}
-						meta.setDisplayName(replaceName);
 					}
+					List<String> replaceStringList = getStringList("<s:",">",name);
+					for(String str : replaceStringList){
+						String randomString = RandomStringManager.getRandomString(str);
+						if (randomString != null){
+							name = name.replace("<s:"+str+">", randomString);
+						}
+						else {
+							name = name.replace("<l:"+str+">", "");
+					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+						}
+					}
+					meta.setDisplayName(name.replace("&", "§"));
 				}
 				List<String> loreList = meta.getLore();
-				for (int i = 0 ; i < loreList.size() ; i++){
+				for (int i = loreList.size()-1 ; i >= 0 ; i--){
 					String lore = loreList.get(i);
-					// 计算随机数值
-					if (lore.contains("<r:") && lore.split("<r:").length > 1&& lore.split("<r:")[1].contains(">")){
-						String replaceLore = lore;
-						for (int r = 1 ; r < lore.split("<r:").length && lore.split("<r:")[r].contains(">") ; r++){
-							String str1 = lore.split("<r:")[r].split(">")[0];
-							if (str1.contains("_") && str1.split("_").length > 1){
-								int i1 = Integer.valueOf(str1.split("_")[0].replace("[^0-9]", ""));
-								int i2 = Integer.valueOf(str1.split("_")[1].replace("[^0-9]", ""))+1;
-								replaceLore = replaceLore.replace("<r:"+str1+">", String.valueOf(new Random().nextInt(i2-i1)+i1));
+					// 固定随机
+					List<String> replaceLockStringList = getStringList("<l:",">",lore);
+					for(String str : replaceLockStringList){
+						if(lockRandomMap.containsKey(str)){
+							lore = lore.replace("<l:"+str+">", lockRandomMap.get(str));
+						}else {
+							String randomString = RandomStringManager.getRandomString(str);
+							if(randomString != null){
+								lore = lore.replace("<l:"+str+">", randomString);
+								// 记录到LockMap中
+								lockRandomMap.put(str, randomString);
+							}
+							else {
+								lore = lore.replace("<l:"+str+">", "");
+						        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
 							}
 						}
-						lore = replaceLore;
 					}
-					// 计算随机字符串
-					if(Config.isRandomStringLore() && lore.contains("<s:") && lore.split("<s:").length > 1&& lore.split("<s:")[1].contains(">")){
-						String replaceLore = lore;
-						for (int r = 1 ; r < lore.split("<s:").length && lore.split("<s:")[r].contains(">") ; r++){
-							String str1 = lore.split("<s:")[r].split(">")[0];
-							List<String> randomList = RandomStringManager.getRandomList(str1);
-							if (randomList != null){
-								replaceLore = replaceLore.replace("<s:"+str1+">", randomList.get(new Random().nextInt(randomList.size())).replace("&", "§"));
-							}
+					// 普通随机
+					List<String> replaceStringList = getStringList("<s:",">",lore);
+					for(String str : replaceStringList){
+						String randomString = RandomStringManager.getRandomString(str);
+						if (randomString != null){
+							lore = lore.replace("<s:"+str+">", randomString);
 						}
-						lore = replaceLore;
+						else {
+							lore = lore.replace("<s:"+str+">", "");
+					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+						}
 					}
+					// 数字随机
+					List<String> replaceNumberList = getStringList("<r:",">",lore);
+					for(String str : replaceNumberList){
+						if (str.contains("_") && str.split("_").length > 1){
+							int i1 = Integer.valueOf(str.split("_")[0].replace("[^0-9]", ""));
+							int i2 = Integer.valueOf(str.split("_")[1].replace("[^0-9]", ""))+1;
+							lore = lore.replace("<r:"+str+">", String.valueOf(new Random().nextInt((i2-i1) < 1 ? 1 : (i2-i1))+i1));
+						}
+					}
+					
 					// 计算耐久值
 					if (lore.contains(Config.getConfig().getString(Config.NAME_DURABILITY))){
 						// 识别物品是否为工具
@@ -283,7 +339,11 @@ public class ItemDataManager {
 							item.setDurability((short) (maxDefaultDurability - defaultDurability));
 						}
 					}
-					loreList.set(i, lore);
+					if(lore.contains("%DeleteLore%")){
+						loreList.remove(i);
+					}else {
+						loreList.set(i, lore.replace("&", "§"));
+					}
 				}
 				// 如果 players 数据存在，并且 Placeholder 开启的情况下，可以代入Placeholder 变量
 				if(SXStats.isPlaceholder() && players.length > 0){

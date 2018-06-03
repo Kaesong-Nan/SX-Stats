@@ -5,7 +5,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
@@ -53,11 +55,14 @@ import lombok.Getter;
  */
 
 public class OnDamageListener implements Listener {
+
+	@Getter private static Map<UUID,String> nameMap = new HashMap<>();
+	@Getter private static Map<UUID,BukkitRunnable> runNameMap = new HashMap<>();
 	
 	 @Getter private static List<Hologram> hologramsList = new ArrayList<>();
 	 
-	 @Getter static public HashMap<Player,BossBar> bossMap = new HashMap<Player,BossBar>();
-	 static public HashMap<Player,BukkitRunnable> runMap = new HashMap<Player,BukkitRunnable>();
+	 @Getter static public HashMap<UUID,BossBar> bossMap = new HashMap<>();
+	 static public HashMap<UUID,BukkitRunnable> runBossMap = new HashMap<>();
 	
 	void sendHolo(String message,Hologram holograms){
 		if(message.contains("Null Message: ")) return;
@@ -107,9 +112,11 @@ public class OnDamageListener implements Listener {
 		if (entity == null || damager ==null) {
 			return;
 		}
-		if(Config.isDamageGauges()){
-			entity.setNoDamageTicks(40);
+		// 取消怪v怪的属性计算
+		if (Config.isDamageCalculationToEVE() && !(entity instanceof Player || damager instanceof Player)){
+			return;
 		}
+		
 		entityData = StatsDataManager.getEntityData(entity);
 		if (damagerData == null) {
 			damagerData = StatsDataManager.getEntityData(damager);
@@ -315,68 +322,134 @@ public class OnDamageListener implements Listener {
 		else{
 			 sendHolo(Message.getMsg(Message.PLAYER_HOLOGRAPHIC_DAMAGE,df.format(event.getFinalDamage())), hologram);
 		}
-
 	}
-	
-
-	
 	
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void onDamageEvent(EntityDamageByEntityEvent event){
-		if(!Config.isHealthBossBar()){
+		if(event.isCancelled()){
 			return;
 		}
-		Player player = null;
+		LivingEntity damager = null;
 		LivingEntity entity = (LivingEntity) event.getEntity();
-		if(event.getDamager() instanceof Player){
+		if(event.getDamager() instanceof LivingEntity){
 			//攻击者
-			player = (Player) event.getDamager();
-		}else
-		if(event.getDamager() instanceof Projectile){
+			damager =  (LivingEntity) event.getDamager();
+		}
+		else if(event.getDamager() instanceof Projectile){
 			Projectile pro = (Projectile) event.getDamager();
-			if(pro.getShooter() instanceof Player){
+			if(pro.getShooter() instanceof LivingEntity){
 				//攻击者
-				player = (Player) pro.getShooter();
+				damager = (LivingEntity) pro.getShooter();
 			}
 		}
-		if(player ==null) return;
-		//处理bossbar
+		if(damager ==null) return;
+		
 		String name = entity.getName();
 		if(entity instanceof Player){
 			name =((Player) entity).getDisplayName();
-		}else{
-			name = Message.replace(name);
 		}
-		double health = entity.getHealth();
-		if(!event.isCancelled()){
-			health = entity.getHealth()-event.getFinalDamage();
+		else{
+			String str = nameMap.get(entity.getUniqueId());
+			if(str != null){
+				name = Message.replace(str);
+			}
+			else {
+				name = Message.replace(name);
+			}
 		}
+		double health = entity.getHealth()-event.getFinalDamage();
 		if(health<0)health=0;
 		double maxHealth = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
 		double progress = health/maxHealth;
-		BarColor barColor = null;
-		if(progress > 0.66){
-			barColor = BarColor.GREEN;
-		}else if(progress > 0.33){
-			barColor = BarColor.YELLOW;
-		}else{
-			barColor = BarColor.RED;
-		}
-		if(runMap.containsKey(player))runMap.remove(player).cancel();
-		DecimalFormat df = new DecimalFormat("#.#");
-		if(bossMap.containsKey(player))bossMap.remove(player).removeAll();
-		BossBar bossBar = Bukkit.createBossBar(MessageFormat.format(Config.getConfig().getString(Config.HEALTH_BOSSBAR_FORMAT), name,df.format(health),df.format(maxHealth)).replace("&", "§"), barColor, BarStyle.SEGMENTED_20);
-		bossBar.setProgress(progress);
-		bossBar.addPlayer(player);
-		bossMap.put(player, bossBar);
-		BukkitRunnable runnable = new BukkitRunnable(){
-			@Override
-			public void run() {
-				bossBar.removeAll();
+
+
+		// 处理bossbar
+		if(Config.isHealthBossBar() && damager instanceof Player){
+			BarColor barColor = null;
+			if(progress > 0.66){
+				barColor = BarColor.GREEN;
+			}else if(progress > 0.33){
+				barColor = BarColor.YELLOW;
+			}else{
+				barColor = BarColor.RED;
 			}
-		};
-		runnable.runTaskLater(SXStats.getPlugin(), Config.getConfig().getInt(Config.HEALTH_BOSSBAR_DISPLAY_TIME));
-		runMap.put(player, runnable);
-		
+			if(runBossMap.containsKey(damager.getUniqueId()))runBossMap.remove(damager.getUniqueId()).cancel();
+			DecimalFormat df = new DecimalFormat("#.#");
+			if(bossMap.containsKey(damager.getUniqueId()))bossMap.remove(damager.getUniqueId()).removeAll();
+			BossBar bossBar = Bukkit.createBossBar(MessageFormat.format(Config.getConfig().getString(Config.HEALTH_BOSSBAR_FORMAT), name,df.format(health),df.format(maxHealth)).replace("&", "§"), barColor, BarStyle.SEGMENTED_20);
+			bossBar.setProgress(progress);
+			bossBar.addPlayer((Player) damager);
+			bossMap.put(damager.getUniqueId(), bossBar);
+			BukkitRunnable runnable = new BukkitRunnable(){
+				@Override
+				public void run() {
+					bossBar.removeAll();
+				}
+			};
+			runnable.runTaskLater(SXStats.getPlugin(), Config.getConfig().getInt(Config.HEALTH_BOSSBAR_DISPLAY_TIME));
+			runBossMap.put(damager.getUniqueId(), runnable);
+		}
+
+		/**
+		 *  处理头顶显血 <崩裂中>
+		 */
+		if(Config.isHealthNameVisible()){
+			if(entity instanceof Player && health == 0){
+				String damagerName = nameMap.remove(damager.getUniqueId());
+				System.out.println(nameMap);
+				if(damagerName != null){
+					damager.setCustomName(damagerName);
+				}
+			}
+			else if (damager instanceof Player){
+				if(health == 0){
+					if(nameMap.containsKey(entity.getUniqueId())){
+						entity.setCustomName(nameMap.remove(entity.getUniqueId()));
+					}
+					entity.setCustomNameVisible(false);
+					return;
+				}
+				String healthName = Config.getConfig().getString(Config.HEALTH_NAME_VISIBLE_PREFIX);
+				int maxSize = Config.getConfig().getInt(Config.HEALTH_NAME_VISIBLE_SIZE);
+				int size = (int) (maxSize*progress);
+				String current = Config.getConfig().getString(Config.HEALTH_NAME_VISIBLE_CURRENT);
+				String loss = Config.getConfig().getString(Config.HEALTH_NAME_VISIBLE_LOSS);
+				// 处理
+				for(int i = 0 ; i < size ; i++){
+					healthName += current;
+				}
+				for(int i = size ; i < maxSize; i++){
+					healthName += loss;
+				}
+				healthName = (healthName+Config.getConfig().getString(Config.HEALTH_NAME_VISIBLE_SUFFIX)).replace("&", "§");
+				// 输出
+				String entityName = entity.getCustomName();
+				if(!nameMap.containsKey(entity.getUniqueId())){
+					nameMap.put(entity.getUniqueId(), entityName);
+				}else {
+					entityName = nameMap.get(entity.getUniqueId());
+				}
+				Boolean visible = entity.isCustomNameVisible();
+				entity.setCustomName(healthName);
+				entity.setCustomNameVisible(true);
+				String runEntityName = entityName;
+				BukkitRunnable run = runNameMap.remove(entity.getUniqueId());
+				if(run != null){
+					run.cancel();
+				}
+				BukkitRunnable runnable = new BukkitRunnable(){
+					@Override
+					public void run() {
+						if(!entity.isDead()){
+							entity.setCustomName(runEntityName);
+							entity.setCustomNameVisible(visible);
+							nameMap.remove(entity.getUniqueId());
+						}
+					}
+				};
+				runNameMap.put(entity.getUniqueId(), runnable);
+				runnable.runTaskLater(SXStats.getPlugin(), Config.getConfig().getInt(Config.HEALTH_NAME_VISIBLE_DISPLAY_TIME));
+			}
+		}
 	}
 }

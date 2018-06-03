@@ -94,7 +94,7 @@ public class SXStats extends JavaPlugin implements Listener{
         Config.loadConfig();
 		Message.loadMessage();
 		ItemUtil.loadItemUtil();
-		RandomStringManager.loadRandom();
+		RandomStringManager.loadRandomMap();
         ItemDataManager.loadItemData();
         StatsDataManager.healthRegenRunnable();
 		Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §a加载用时:"+(System.currentTimeMillis()-oldTimes)+"毫秒");
@@ -124,16 +124,17 @@ public class SXStats extends JavaPlugin implements Listener{
             //无参数
             if (args.length==0){
             	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6==========[&b "+ this.getName() +"&6 ]=========="));
-                    for (java.lang.reflect.Method method : this.getClass().getDeclaredMethods()){
-                            if (!method.isAnnotationPresent(PlayerCommand.class)){
-                                    continue;
-                            }
-                            PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
-                            if (contains(sub.type(),type) && sender.hasPermission(this.getName()+"." + sub.cmd())){
-                            	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " " +sub.cmd()+"&6"+sub.arg()+"&7-:&3 "+Message.getMsg("Command."+ sub.cmd())));
-                            }
+                for (java.lang.reflect.Method method : this.getClass().getDeclaredMethods()){
+                    if (!method.isAnnotationPresent(PlayerCommand.class)){
+                            continue;
                     }
-                    return true;
+                    PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
+                    if (contains(sub.type(),type) && sender.hasPermission(this.getName()+"." + sub.cmd())){
+                    	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " " +sub.cmd()+"&6"+sub.arg()+"&7-:&3 "+Message.getMsg("Command."+ sub.cmd())));
+                    }
+                }
+            	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8>----------&7 Saukiya&8 ----------<"));
+                return true;
             }
             for (java.lang.reflect.Method method:this.getClass().getDeclaredMethods()){
                     if (!method.isAnnotationPresent(PlayerCommand.class)){
@@ -240,9 +241,10 @@ public class SXStats extends JavaPlugin implements Listener{
 	
 	@PlayerCommand(cmd="reload")
 	public void onReloadCommand(CommandSender sender,String args[]){
+		Long oldTimes = System.currentTimeMillis();
         Config.loadConfig();
 		Message.loadMessage();
-		RandomStringManager.loadRandom();
+		RandomStringManager.loadRandomMap();
         ItemDataManager.loadItemData();
         int size = 0;
         for (UUID uuid : StatsDataManager.equipmentMap.keySet()){
@@ -263,6 +265,7 @@ public class SXStats extends JavaPlugin implements Listener{
         	sender.sendMessage(Message.getMsg(Message.ADMIN_CLEAR_ENTITY_DATA, String.valueOf(size)));
         }
 		sender.sendMessage(Message.getMsg(Message.ADMIN_PLUGIN_RELOAD));
+		Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §a重载用时:"+(System.currentTimeMillis()-oldTimes)+"毫秒");
 	}
 	
 }
