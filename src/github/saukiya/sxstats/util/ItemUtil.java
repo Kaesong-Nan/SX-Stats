@@ -73,7 +73,10 @@ public class ItemUtil {
 	public static double getAttackSpeed(ItemStack item,double... addSpeed){
 		double attackSpeed = -0.30D;
 		String itemType = item.getType().name();
-		if(itemType.contains("_PICKAXE")){
+		if(itemType.contains("BOW")){
+			attackSpeed = -0.20D;
+		}
+		else if(itemType.contains("_PICKAXE")){
 			attackSpeed = -0.70D;
 		}
 		else if (itemType.contains("_AXE")){

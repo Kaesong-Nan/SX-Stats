@@ -101,45 +101,45 @@ public class Message {
 
 		List<String> attackLoreList = new ArrayList<String>();
 		
-		attackLoreList.add("&e攻击力:&b %sx_mindamage% - %sx_maxdamage%");
-		attackLoreList.add("&ePVP攻击力:&b %sx_pvpmindamage% - %sx_pvpmaxdamage%");
-		attackLoreList.add("&ePVE攻击力:&b %sx_pvemindamage% - %sx_pvemaxdamage%");
-		attackLoreList.add("&e命中几率:&b %sx_hitRate%%");
-		attackLoreList.add("&e破甲几率:&b %sx_real%%");
-		attackLoreList.add("&e暴击几率:&b %sx_crit%%");
-		attackLoreList.add("&e暴击伤害:&b %sx_critDamage%%");
-		attackLoreList.add("&e生命吸取:&b %sx_lifeSteal%%");
-		attackLoreList.add("&e点燃几率:&b %sx_ignition%%");
-		attackLoreList.add("&e凋零几率:&b %sx_wither%%");
-		attackLoreList.add("&e中毒几率:&b %sx_poison%%");
-		attackLoreList.add("&e失明几率:&b %sx_blindness%%");
-		attackLoreList.add("&e缓慢几率:&b %sx_slowness%%");
+		attackLoreList.add("&c攻击力:&b %sx_damage%");
+		attackLoreList.add("&cPVP攻击力:&b %sx_pvpdamage%");
+		attackLoreList.add("&cPVE攻击力:&b %sx_pvedamage%");
+		attackLoreList.add("&a命中几率:&b %sx_hitRate%%");
+		attackLoreList.add("&6破甲几率:&b %sx_real%%");
+		attackLoreList.add("&c暴击几率:&b %sx_crit%%");
+		attackLoreList.add("&4暴击伤害:&b %sx_critDamage%%");
+		attackLoreList.add("&6生命吸取:&b %sx_lifeSteal%%");
+		attackLoreList.add("&c点燃几率:&b %sx_ignition%%");
+		attackLoreList.add("&9凋零几率:&b %sx_wither%%");
+		attackLoreList.add("&d中毒几率:&b %sx_poison%%");
+		attackLoreList.add("&3失明几率:&b %sx_blindness%%");
+		attackLoreList.add("&3缓慢几率:&b %sx_slowness%%");
 		attackLoreList.add("&e雷霆几率:&b %sx_lightning%%");
-		attackLoreList.add("&e撕裂几率:&b %sx_tearing%%");
+		attackLoreList.add("&c撕裂几率:&b %sx_tearing%%");
 		
 		List<String> defenseLoreList = new ArrayList<String>();
 		
-		defenseLoreList.add("&e防御力:&b %sx_minDefense% - %sx_maxDefense%");
-		defenseLoreList.add("&ePVP防御力:&b %sx_pvpMinDefense% - %sx_pvpMaxDefense%");
-		defenseLoreList.add("&ePVE防御力:&b %sx_pveMinDefense% - %sx_pveMaxDefense%");
-		defenseLoreList.add("&e生命上限:&b %sx_health%");
-		defenseLoreList.add("&e生命恢复:&b %sx_healthRegen%");
-		defenseLoreList.add("&e闪避几率:&b %sx_dodge%%");
-		defenseLoreList.add("&e韧性:&b %sx_toughness%%");
-		defenseLoreList.add("&e反射几率:&b %sx_reflectionRate%%");
-		defenseLoreList.add("&e反射伤害:&b %sx_reflection%%");
-		defenseLoreList.add("&e格挡几率:&b %sx_blockRate%%");
-		defenseLoreList.add("&e格挡伤害:&b %sx_block%%");
+		defenseLoreList.add("&6防御力:&b %sx_defense%");
+		defenseLoreList.add("&6PVP防御力:&b %sx_pvpdefense%");
+		defenseLoreList.add("&6PVE防御力:&b %sx_pvedefense%");
+		defenseLoreList.add("&a生命上限:&b %sx_health%");
+		defenseLoreList.add("&a生命恢复:&b %sx_healthRegen%");
+		defenseLoreList.add("&d闪避几率:&b %sx_dodge%%");
+		defenseLoreList.add("&9韧性:&b %sx_toughness%%");
+		defenseLoreList.add("&c反射几率:&b %sx_reflectionRate%%");
+		defenseLoreList.add("&c反射伤害:&b %sx_reflection%%");
+		defenseLoreList.add("&2格挡几率:&b %sx_blockRate%%");
+		defenseLoreList.add("&2格挡伤害:&b %sx_block%%");
 		
 		List<String> baseLoreList = new ArrayList<String>();
 		
 		baseLoreList.add("&e经验加成:&b %sx_expAddition%%");
-		baseLoreList.add("&e速度:&b %sx_speed%%");
+		baseLoreList.add("&b速度:&b %sx_speed%%");
 		messages.set(INVENTORY_STATS_NAME, "&d&l&oSX-Stats");
 		messages.set(INVENTORY_STATS_HIDE_ON, "&a点击显示更多属性");
 		messages.set(INVENTORY_STATS_HIDE_OFF, "&c点击隐藏更多属性");
 		messages.set(INVENTORY_STATS_SKULL_NAME, "&6&l&o{0} 的属性");
-		messages.set(INVENTORY_STATS_SKULL_LORE, Arrays.asList("&e战斗力:&b %sx_value%"));
+		messages.set(INVENTORY_STATS_SKULL_LORE, Arrays.asList("&d战斗力:&b %sx_value%"));
 		messages.set(INVENTORY_STATS_ATTACK, "&a&l&o攻击属性");
 		messages.set(INVENTORY_STATS_ATTACK_LORE, attackLoreList);
 		messages.set(INVENTORY_STATS_DEFENSE, "&9&l&o防御属性");
@@ -149,7 +149,7 @@ public class Message {
 
 		messages.set(PLAYER_BATTLE_CRIT, "[ACTIONBAR]&c{0}&6 对 &c{1}&6 造成了暴击!");
 		messages.set(PLAYER_BATTLE_IGNITION, "[ACTIONBAR]&c{0}&6 被 &c{1}&6 点燃了!");
-		messages.set(PLAYER_BATTLE_WITHER, "[ACTIONBAR]]&c{0}&6 被 &c{1}&6 凋零了!");
+		messages.set(PLAYER_BATTLE_WITHER, "[ACTIONBAR]&c{0}&6 被 &c{1}&6 凋零了!");
 		messages.set(PLAYER_BATTLE_POISON, "[ACTIONBAR]&c{0}&6 被 &c{1}&6 中毒了!");
 		messages.set(PLAYER_BATTLE_BLINDNESS, "[ACTIONBAR]&c{0}&6 被 &c{1}&6 致盲了!");
 		messages.set(PLAYER_BATTLE_SLOWNESS, "[ACTIONBAR]&c{0}&6 被 &c{1}&6 减速了!");
@@ -218,6 +218,9 @@ public class Message {
 	}
 
 	public static String replace(String str){
+		if(str == null){
+			return str;
+		}
 		if(messages.contains(REPLACE_LIST)){
 			for(String replaceName : messages.getConfigurationSection(REPLACE_LIST).getKeys(false)){
 				str = str.replace(replaceName, messages.getString(REPLACE_LIST+"."+replaceName));

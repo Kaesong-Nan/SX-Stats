@@ -104,6 +104,14 @@ public class SXStats extends JavaPlugin implements Listener{
 	public void onDisable(){
 		OnDamageListener.getHologramsList().forEach(Hologram::delete);
 		OnDamageListener.getBossMap().values().forEach(BossBar::removeAll);
+		OnDamageListener.getNameMap().forEach((key,nameData) -> {
+			System.out.println(key);
+			Entity entity = Bukkit.getEntity(key);
+			if(entity != null && !entity.isDead()){
+				entity.setCustomName(nameData.getName());
+				entity.setCustomNameVisible(nameData.isVisible());
+			}
+		});
 	}
 	
 	public static Plugin getPlugin(){

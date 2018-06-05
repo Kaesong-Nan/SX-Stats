@@ -34,7 +34,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class ItemDataManager {
-	private static Map<String,ItemStack> itemMap = new HashMap<>();
+	private static Map<String,ItemData> itemMap = new HashMap<>();
 	final static File itemFiles = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "Item");
 	final static File itemDefaultFile = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "Item" + File.separator + "Default" + File.separator  + "Default.yml");
 
@@ -128,24 +128,36 @@ public class ItemDataManager {
 				loadItem(file);
 			}
 			else {
-				YamlConfiguration itemData = new YamlConfiguration();
+				YamlConfiguration itemYaml = new YamlConfiguration();
 				try {
-					itemData.load(file);
+					itemYaml.load(file);
 				} catch (IOException | InvalidConfigurationException e) {
 					//
 				}
-				for (String name:itemData.getKeys(false)) {
+				for (String name:itemYaml.getKeys(false)) {
 					if (itemMap.containsKey(name)){
 						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c不要重复物品名: §6"+file.toString().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator, "")+File.separator+name +" §c!");
 					}
-					String itemName = itemData.getString(name+".Name");
-					String id = itemData.getString(name+".ID");
-					List<String> itemLore = itemData.getStringList(name+".Lore");
-					List<String> enchantList = itemData.getStringList(name+".EnchantList");
-					List<String> itemFlagList = itemData.getStringList(name+".ItemFlagList");
-					Boolean unbreakable = itemData.getBoolean(name+".Unbreakable");
-					String color = itemData.getString(name+".Color");
-					String skullName = itemData.getString(name+".SkullName");
+					String itemName = itemYaml.getString(name+".Name");
+					List<String> ids = new ArrayList<>();
+					Object idObject = itemYaml.get(name+".ID");
+					if(idObject instanceof List){
+						ids = itemYaml.getStringList(name+".ID");
+					}
+					else {
+						ids.add(itemYaml.getString(name+".ID","260"));
+					}
+					if(ids.size() == 0){
+						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品: §6"+name +" §c没有 ID!");
+						ids.add("260");
+					}
+					String id = getRandomString(itemName,ids.get(new Random().nextInt(ids.size())),new HashMap<>());
+					List<String> itemLore = itemYaml.getStringList(name+".Lore");
+					List<String> enchantList = itemYaml.getStringList(name+".EnchantList");
+					List<String> itemFlagList = itemYaml.getStringList(name+".ItemFlagList");
+					Boolean unbreakable = itemYaml.getBoolean(name+".Unbreakable");
+					String color = itemYaml.getString(name+".Color");
+					String skullName = itemYaml.getString(name+".SkullName");
 					
 					ItemStack item = getItemStack(itemName, id, itemLore, enchantList, itemFlagList , unbreakable , color , skullName);
 					int hashCode = item.getType().name().hashCode()/100 + item.getDurability();
@@ -180,7 +192,7 @@ public class ItemDataManager {
 						item = ItemUtil.setNBT(ItemUtil.setNBT(item,"Name",name),"HasCode",String.valueOf(hashCode));
 					}
 					
-					itemMap.put(name, item);
+					itemMap.put(name, new ItemData(item,ids));
 				}
 			}
 		}
@@ -201,9 +213,9 @@ public class ItemDataManager {
 	static void createItemData() {
         Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aCreate Item/Default.yml");
         YamlConfiguration itemData = new YamlConfiguration();
-        itemData.set("默认一.Name", "<s:DefaultPrefix>&c炎之洗礼 <s:DefaultSuffix> <l:Quality>");
-        itemData.set("默认一.ID", 278);
-        itemData.set("默认一.Lore", Arrays.asList("&6品质等级: <s:<l:Quality>Color><l:Quality>","&6限制职业: 剑士","&6限制手持: 主手","&6限制等级: <s:<l:Quality>等级-10>级","&c攻击力: +<s:<l:Quality>攻击-10>","<s:<l:Quality>攻一-10>","<s:<l:Quality>攻二-10>","<s:<l:Quality>攻三-10>","<s:<l:Quality>攻四-10>","&r","&7耐久度: <r:30_200>/200"));
+        itemData.set("默认一.Name", "<s:DefaultPrefix> &c炎之洗礼 <s:DefaultSuffix> <s:<l:品质>Color><l:品质>");
+        itemData.set("默认一.ID", "<s:<l:职业>ID>");
+        itemData.set("默认一.Lore", Arrays.asList("&6品质等级: <s:<l:品质>Color><l:品质>","<s:<l:品质>职业>","&6限制手持: 主手","&6限制等级: <s:<l:品质>等级-10>级","&c攻击力: +<s:<l:品质>攻击-10>","<s:<l:品质>攻一-10>","<s:<l:品质>攻二-10>","<s:<l:品质>攻三-10>","<s:<l:品质>攻四-10>","&r","<s:<l:品质>宝石孔>","&7耐久度: <r:100_<s:<l:品质>耐久最低>>/<s:<l:品质>耐久>","<s:<l:品质>无法交易>"));
         itemData.set("默认一.Unbreakable", false);
         itemData.set("默认二.Name", "&c机械轻羽之靴");
         itemData.set("默认二.ID", 301);
@@ -240,88 +252,79 @@ public class ItemDataManager {
 		return stringList;
 	}
 	
+	/** 
+	 *  专业处理随机文本四十年
+	 * @param itemName 可以为null
+	 * @param string
+	 * @param lockMap 存储固定值的Map
+	 * @return 处理后的Map
+	 */
+	public static String getRandomString(String itemName,String string,Map<String,String> lockMap){
+		if(string != null){
+			List<String> replaceLockStringList = getStringList("<l:",">",string);
+			for(String str : replaceLockStringList){
+				if(lockMap.containsKey(str)){
+					string = string.replace("<l:"+str+">", lockMap.get(str));
+				}else {
+					String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
+					if(!randomString.equals("%DeleteLore%")){
+						string = string.replace("<l:"+str+">", randomString);
+						// 记录到LockMap中
+						lockMap.put(str, randomString);
+					}
+					else {
+						string = string.replace("<l:"+str+">", "%DeleteLore%");
+				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+					}
+				}
+			}
+			// 普通随机
+			List<String> replaceStringList = getStringList("<s:",">",string);
+			for(String str : replaceStringList){
+				String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
+				string = string.replace("<s:"+str+">", randomString);
+			}
+			// 数字随机
+			List<String> replaceNumberList = getStringList("<r:",">",string);
+			for(String str : replaceNumberList){
+				if (str.contains("_") && str.split("_").length > 1){
+					int i1 = Integer.valueOf(str.split("_")[0].replace("[^0-9]", ""));
+					int i2 = Integer.valueOf(str.split("_")[1].replace("[^0-9]", ""))+1;
+					string = string.replace("<r:"+str+">", String.valueOf(new Random().nextInt((i2-i1) < 1 ? 1 : (i2-i1))+i1));
+				}
+			}
+		}
+		return string;
+	}
+	
+	@SuppressWarnings("deprecation")
 	public static ItemStack getItem(String itemName,Player... players) {
 		if (itemMap.containsKey(itemName)) {
-			ItemStack item = itemMap.get(itemName).clone();
+			ItemData itemData = itemMap.get(itemName);
+			ItemStack item = itemData.getItem().clone();
 			Map<String,String> lockRandomMap = new HashMap<>();
-			
+			String id = getRandomString(itemName,itemData.getIds().get(new Random().nextInt(itemData.getIds().size())),lockRandomMap);
+	        int itemMaterial = 260,itemDurability = 0;
+	        if(id != null){
+	            if (id.contains(":")){
+	            	String[] idSplit = id.split(":");
+	            	itemMaterial = Integer.valueOf(idSplit[0]);
+	            	itemDurability = Integer.valueOf(idSplit[1]);
+	            }else{
+	            	itemMaterial = Integer.valueOf(id);
+	            }
+	        }
+	        item.setTypeId(itemMaterial);
+			item.setDurability((short) itemDurability);
 			if (item.hasItemMeta() && item.getItemMeta().hasLore()){
 				ItemMeta meta = item.getItemMeta();
 				if(meta.hasDisplayName() && Config.isRandomStringName()){
-					String name = meta.getDisplayName();
-					List<String> replaceLockStringList = getStringList("<l:",">",name);
-					for(String str : replaceLockStringList){
-						if(lockRandomMap.containsKey(str)){
-							name = name.replace("<l:"+str+">", lockRandomMap.get(str));
-						}else {
-							String randomString = RandomStringManager.getRandomString(str);
-							if(randomString != null){
-								name = name.replace("<l:"+str+">", randomString);
-								// 记录到textMap中
-								lockRandomMap.put(str, randomString);
-							}
-							else {
-								name = name.replace("<l:"+str+">", "");
-						        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
-							}
-						}
-					}
-					List<String> replaceStringList = getStringList("<s:",">",name);
-					for(String str : replaceStringList){
-						String randomString = RandomStringManager.getRandomString(str);
-						if (randomString != null){
-							name = name.replace("<s:"+str+">", randomString);
-						}
-						else {
-							name = name.replace("<l:"+str+">", "");
-					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
-						}
-					}
-					meta.setDisplayName(name.replace("&", "§"));
+					String name = getRandomString(itemName,meta.getDisplayName(),lockRandomMap);
+					meta.setDisplayName(name.replace("&", "§").replace("%DeleteLore%", ""));
 				}
 				List<String> loreList = meta.getLore();
 				for (int i = loreList.size()-1 ; i >= 0 ; i--){
-					String lore = loreList.get(i);
-					// 固定随机
-					List<String> replaceLockStringList = getStringList("<l:",">",lore);
-					for(String str : replaceLockStringList){
-						if(lockRandomMap.containsKey(str)){
-							lore = lore.replace("<l:"+str+">", lockRandomMap.get(str));
-						}else {
-							String randomString = RandomStringManager.getRandomString(str);
-							if(randomString != null){
-								lore = lore.replace("<l:"+str+">", randomString);
-								// 记录到LockMap中
-								lockRandomMap.put(str, randomString);
-							}
-							else {
-								lore = lore.replace("<l:"+str+">", "");
-						        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
-							}
-						}
-					}
-					// 普通随机
-					List<String> replaceStringList = getStringList("<s:",">",lore);
-					for(String str : replaceStringList){
-						String randomString = RandomStringManager.getRandomString(str);
-						if (randomString != null){
-							lore = lore.replace("<s:"+str+">", randomString);
-						}
-						else {
-							lore = lore.replace("<s:"+str+">", "");
-					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
-						}
-					}
-					// 数字随机
-					List<String> replaceNumberList = getStringList("<r:",">",lore);
-					for(String str : replaceNumberList){
-						if (str.contains("_") && str.split("_").length > 1){
-							int i1 = Integer.valueOf(str.split("_")[0].replace("[^0-9]", ""));
-							int i2 = Integer.valueOf(str.split("_")[1].replace("[^0-9]", ""))+1;
-							lore = lore.replace("<r:"+str+">", String.valueOf(new Random().nextInt((i2-i1) < 1 ? 1 : (i2-i1))+i1));
-						}
-					}
-					
+					String lore = getRandomString(itemName,loreList.get(i),lockRandomMap);
 					// 计算耐久值
 					if (lore.contains(Config.getConfig().getString(Config.NAME_DURABILITY))){
 						// 识别物品是否为工具
@@ -474,7 +477,6 @@ public class ItemDataManager {
 	}
 
 	//发送物品列表给指令者
-	@SuppressWarnings("deprecation")
 	public static void sendItemMapToPlayer(CommandSender sender,String... searchs) {
 		if (sender instanceof Player){
 			sender.sendMessage("§e物品列表§b - §e点击获取");
@@ -488,7 +490,16 @@ public class ItemDataManager {
 		}
 		int z=1;
 		for (String key:itemMap.keySet()) {
-			ItemStack item = itemMap.get(key);
+			ItemData itemData = itemMap.get(key);
+			ItemStack item = itemData.getItem();
+			List<String> ids = itemData.getIds();
+			String id = ids.get(0);
+			if(ids.size() > 1){
+				for(int i = 0 ; i < ids.size() ; i++){
+					id += "/"+ids.get(i);
+				}
+			}
+			
 			ItemMeta itemMeta = item.getItemMeta();
 			String itemName = item.getType().name();
 			if (itemMeta.hasDisplayName()) {
@@ -503,7 +514,7 @@ public class ItemDataManager {
 			List<String> itemLore = itemMeta.getLore();
 			if (sender instanceof Player){
 				TextComponent message = new TextComponent(str);
-				ComponentBuilder bc = new ComponentBuilder(itemName+"§b - "+item.getTypeId()+":"+item.getDurability());
+				ComponentBuilder bc = new ComponentBuilder(itemName+"§b - "+id);
 				if (itemLore!=null) {
 					for (String lore:itemLore) {
 						bc.append("\n"+lore);

@@ -31,21 +31,40 @@ public class RandomStringManager {
 	}
 	
 	
-	public static String getRandomString(String name){
+	public static String getRandomString(String itemName,String name,Map<String,String> lockMap){
 		List<String> randomList = randomMap.get(name);
 		if(randomList != null){
 			String str1 = randomList.get(new Random().nextInt(randomList.size()));
+			if(lockMap != null){
+				List<String> replaceLockStringList = ItemDataManager.getStringList("<l:",">",str1);
+				for(String str : replaceLockStringList){
+					if(lockMap.containsKey(str)){
+						str1 = str1.replace("<l:"+str+">", lockMap.get(str));
+					}else {
+						String randomString = getRandomString(itemName,str,lockMap);
+						if(randomString != null){
+							str1 = str1.replace("<l:"+str+">", randomString);
+							// 记录到LockMap中
+							lockMap.put(str, randomString);
+						}
+						else {
+							str1 = str1.replace("<l:"+str+">", "");
+					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+						}
+					}
+				}
+			}
 			List<String> replaceStringList = ItemDataManager.getStringList("<s:",">",str1);
 			for(String str2 : replaceStringList){
 				if(str1.equals(str2)){
 			        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c请不要造成无限循环 本插件不承担相应责任!");
 					continue;
 				}
-				str1 = str1.replace("<s:"+str2+">", getRandomString(str2));
+				str1 = str1.replace("<s:"+str2+">", getRandomString(itemName,str2,lockMap));
 			}
 			return str1;
 		}
-		return null;
+		return "%DeleteLore%";
 	}
 	
 	public static void loadRandomMap() {
@@ -85,10 +104,32 @@ public class RandomStringManager {
 		yaml.set("DefaultLore", Arrays.asList("&7&o他是由什么材质做成的呢?","&7&o握着它，有不好的预感呢","&7&o据说夜幕曾经带它攻略沙场"));
 		yaml.set("DefaultPrefix", Arrays.asList("&c令人兴奋之","&c煞胁之","&e兴趣使然之"));
 		yaml.set("DefaultSuffix", Arrays.asList("&e淦","&e武","&e衡"));
-		yaml.set("Quality", Arrays.asList("普通","优秀","史诗"));
+		yaml.set("品质", Arrays.asList("普通","优秀","史诗"));
+		yaml.set("职业", Arrays.asList("射手","战士","剑士"));
+		yaml.set("射手ID", "261");
+		yaml.set("战士ID", "<s:战士<l:品质>ID>");
+		yaml.set("剑士ID", "<s:剑士<l:品质>ID>");
+		yaml.set("战士普通ID", "258");
+		yaml.set("战士优秀ID", "286");
+		yaml.set("战士史诗ID", "279");
+		yaml.set("剑士普通ID", "267");
+		yaml.set("剑士优秀ID", "283");
+		yaml.set("剑士史诗ID", "276");
+		yaml.set("优秀职业", "&6限制职业: <l:职业>");
+		yaml.set("史诗职业", "&6限制职业: <l:职业>");
+		yaml.set("普通耐久", "<r:200_300>");
+		yaml.set("优秀耐久", "<r:500_600>");
+		yaml.set("史诗耐久", "<r:800_900>");
+		yaml.set("普通耐久最低", "200");
+		yaml.set("优秀耐久最低", "500");
+		yaml.set("史诗耐久最低", "800");
 		yaml.set("普通Color", "&7");
 		yaml.set("优秀Color", "&a");
 		yaml.set("史诗Color", "&5");
+		yaml.set("普通宝石孔", "&a&l『&7可镶嵌&a&l』");
+		yaml.set("优秀宝石孔", "&a&l『&7可镶嵌&a&l』&a&l『&7可镶嵌&a&l』");
+		yaml.set("史诗宝石孔", "&a&l『&7可镶嵌&a&l』&a&l『&7可镶嵌&a&l』&a&l『&7可镶嵌&a&l』");
+		yaml.set("史诗无法交易", "&c无法交易");
 		yaml.set("好看Color", Arrays.asList("&a","&b","&c","&4","&d","&1","&3","&9"));
 		yaml.set("好丑Color", Arrays.asList("&1","&8","&7","&5","&3","&2"));
 		yaml.set("攻随一", Arrays.asList("攻击速度","暴击几率"));

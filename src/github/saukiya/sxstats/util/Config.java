@@ -19,12 +19,12 @@ public class Config {
 	final public static String HOLOGRAPHIC_ENABLED = "Holographic.Enabled";
 	final public static String HOLOGRAPHIC_TICK = "Holographic.Tick";
 	final public static String HEALTH_NAME_VISIBLE_ENABLED = "Health.NameVisible.Enabled";
-	final public static String HEALTH_NAME_VISIBLE_DISPLAY_TIME = "Health.NameVisible.DisplayTime";
 	final public static String HEALTH_NAME_VISIBLE_SIZE = "Health.NameVisible.Size";
 	final public static String HEALTH_NAME_VISIBLE_CURRENT = "Health.NameVisible.Current";
 	final public static String HEALTH_NAME_VISIBLE_LOSS = "Health.NameVisible.Loss";
 	final public static String HEALTH_NAME_VISIBLE_PREFIX = "Health.NameVisible.Prefix";
 	final public static String HEALTH_NAME_VISIBLE_SUFFIX = "Health.NameVisible.Suffix";
+	final public static String HEALTH_NAME_VISIBLE_DISPLAY_TIME = "Health.NameVisible.DisplayTime";
 	final public static String HEALTH_BOSSBAR_ENABLED = "Health.BossBar.Enabled";
 	final public static String HEALTH_BOSSBAR_FORMAT = "Health.BossBar.Format";
 	final public static String HEALTH_BOSSBAR_DISPLAY_TIME = "Health.BossBar.DisplayTime";
@@ -169,12 +169,12 @@ public class Config {
 		config.set(HOLOGRAPHIC_TICK, 40);
 		// 血量头顶显示
 		config.set(HEALTH_NAME_VISIBLE_ENABLED, true);
-		config.set(HEALTH_NAME_VISIBLE_DISPLAY_TIME, 40);
 		config.set(HEALTH_NAME_VISIBLE_SIZE, 10);
 		config.set(HEALTH_NAME_VISIBLE_CURRENT, "❤");
 		config.set(HEALTH_NAME_VISIBLE_LOSS, "&7❤");
 		config.set(HEALTH_NAME_VISIBLE_PREFIX, "&8[&c");
 		config.set(HEALTH_NAME_VISIBLE_SUFFIX, "&8]");
+		config.set(HEALTH_NAME_VISIBLE_DISPLAY_TIME, 40);
 		// 血量显示
 		config.set(HEALTH_BOSSBAR_ENABLED, true);
 		config.set(HEALTH_BOSSBAR_FORMAT, "&a&l{0}:&8&l[&a&l{1}&7&l/&c&l{2}&8&l]");
@@ -182,6 +182,8 @@ public class Config {
 		// 血条压缩
 		config.set(HEALTH_SCALED_ENABLED, true);
 		config.set(HEALTH_SCALED_VALUE, 40);
+		// 怪V怪的属性计算
+		config.set(ITEM_DISPLAY_NAME, true);
 		// 怪V怪的属性计算
 		config.set(DAMAGE_CALCULATION_TO_EVE, false);
 		// 伤害计量器

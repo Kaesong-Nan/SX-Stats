@@ -141,8 +141,10 @@ public class StatsInventory {
 		for(int i = 0 ; i < list.size() ; i++){
 			String lore = list.get(i);
 			while(lore.contains("%") && lore.split("%").length > 1 && lore.split("%")[1].contains("sx_") && lore.split("%")[1].split("_").length > 1){
-				String string = lore.split("%")[1].split("_")[1];
+				String[] loreSplit = lore.split("%");
+				String string = loreSplit[1].split("_")[1];
 				Double b = -1D;
+				String str = null;
 				if(string.equalsIgnoreCase("expAddition")) b = data.getExpAddition();
 				else if(string.equalsIgnoreCase("speed")) b = data.getSpeed();
 				else if(string.equalsIgnoreCase("health")) b = data.getHealth();
@@ -150,10 +152,33 @@ public class StatsInventory {
 				else if(string.equalsIgnoreCase("dodge")) b = data.getDodge();
 				else if(string.equalsIgnoreCase("minDefense")) b = data.getMinDefense();
 				else if(string.equalsIgnoreCase("maxDefense")) b = data.getMaxDefense();
-				else if(string.equalsIgnoreCase("pvpMinDefense")) b = data.getPvpMinDefense();
+				else if(string.equalsIgnoreCase("defense")){
+					if(data.getMinDefense() == data.getMaxDefense()){
+						b = data.getMinDefense();
+					}
+					else {
+						str = df.format(data.getMinDefense())+" - "+df.format(data.getMaxDefense());
+					}
+				} if(string.equalsIgnoreCase("pvpMinDefense")) b = data.getPvpMinDefense();
 				else if(string.equalsIgnoreCase("pvpMaxDefense")) b = data.getPvpMaxDefense();
+				else if(string.equalsIgnoreCase("pvpDefense")){
+					if(data.getPvpMinDefense() == data.getPvpMaxDefense()){
+						b = data.getPvpMinDefense();
+					}
+					else {
+						str = df.format(data.getPvpMinDefense())+" - "+df.format(data.getPvpMaxDefense());
+					}
+				}
 				else if(string.equalsIgnoreCase("pveMinDefense")) b = data.getPveMinDefense();
 				else if(string.equalsIgnoreCase("pveMaxDefense")) b = data.getPveMaxDefense();
+				else if(string.equalsIgnoreCase("pveDefense")){
+					if(data.getPveMinDefense() == data.getPveMaxDefense()){
+						b = data.getPveMinDefense();
+					}
+					else {
+						str = df.format(data.getPveMinDefense())+" - "+df.format(data.getPveMaxDefense());
+					}
+				}
 				else if(string.equalsIgnoreCase("toughness")) b = data.getToughness();
 				else if(string.equalsIgnoreCase("reflectionRate")) b = data.getReflectionRate();
 				else if(string.equalsIgnoreCase("reflection")) b = data.getReflection();
@@ -161,10 +186,34 @@ public class StatsInventory {
 				else if(string.equalsIgnoreCase("block")) b = data.getBlock();
 				else if(string.equalsIgnoreCase("minDamage")) b = data.getMinDamage() == 0 ? 1 : data.getMinDamage();
 				else if(string.equalsIgnoreCase("maxDamage")) b = data.getMaxDamage() == 0 ? 1 : data.getMinDamage();
+				else if(string.equalsIgnoreCase("damage")){
+					if(data.getMinDamage() == data.getMaxDamage()){
+						b = data.getMinDamage() == 0 ? 1 : data.getMaxDamage();
+					}
+					else {
+						str = df.format(data.getMinDamage() == 0 ? 1 : data.getMinDamage())+" - "+df.format(data.getMaxDamage() == 0 ? 1 : data.getMaxDamage());
+					}
+				}
 				else if(string.equalsIgnoreCase("pvpMinDamage")) b = data.getPvpMinDamage();
 				else if(string.equalsIgnoreCase("pvpMaxDamage")) b = data.getPvpMaxDamage();
+				else if(string.equalsIgnoreCase("pvpDamage")){
+					if(data.getPvpMinDamage() == data.getPvpMaxDamage()){
+						b = data.getPvpMinDamage();
+					}
+					else {
+						str = df.format(data.getPvpMinDamage())+" - "+df.format(data.getPvpMaxDamage());
+					}
+				}
 				else if(string.equalsIgnoreCase("pveMinDamage")) b = data.getPveMinDamage();
 				else if(string.equalsIgnoreCase("pveMaxDamage")) b = data.getPveMaxDamage();
+				else if(string.equalsIgnoreCase("pveDamage")){
+					if(data.getPveMinDamage() == data.getPveMaxDamage()){
+						b = data.getPveMinDamage();
+					}
+					else {
+						str = df.format(data.getPveMinDamage())+" - "+df.format(data.getPveMaxDamage());
+					}
+				}
 				else if(string.equalsIgnoreCase("hitRate")) b = data.getHitRate();
 				else if(string.equalsIgnoreCase("real")) b = data.getReal();
 				else if(string.equalsIgnoreCase("crit")) b = data.getCritRate();
@@ -178,11 +227,15 @@ public class StatsInventory {
 				else if(string.equalsIgnoreCase("lightning")) b = data.getLightning();
 				else if(string.equalsIgnoreCase("tearing")) b = data.getTearing();
 				else if(string.equalsIgnoreCase("value")) b = data.getValue();
-				if (b == -1D){
-					lore = lore.replaceFirst("%"+lore.split("%")[1]+"%", "变量不正确");
-				}
-				else {
-					lore = lore.replaceFirst("%"+lore.split("%")[1]+"%", df.format(b));
+				if (str != null){
+					lore = lore.replaceFirst("%"+loreSplit[1]+"%", str);
+				}else {
+					if (b == -1D){
+						lore = lore.replaceFirst("%"+loreSplit[1]+"%", "变量不正确");
+					}
+					else {
+						lore = lore.replaceFirst("%"+loreSplit[1]+"%", df.format(b));
+					}
 				}
 			}
 			list.set(i, lore);
