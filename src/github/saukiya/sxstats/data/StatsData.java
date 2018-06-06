@@ -2,12 +2,16 @@ package github.saukiya.sxstats.data;
 
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import github.saukiya.sxstats.util.Config;
 import lombok.Getter;
 
 public class StatsData{
+	@Getter private Map<String,Double> extendStatsMap = new HashMap<>();
+	
 	@Getter @Setter private double expAddition = 0D;//经验加成
 	@Getter @Setter private double speed = 0D;//速度
 	
@@ -25,6 +29,7 @@ public class StatsData{
 	@Getter @Setter private double reflection = 0D;//反射伤害
 	@Getter @Setter private double blockRate = 0D;//格挡几率
 	@Getter @Setter private double block = 0D;//格挡伤害
+	
 	@Getter @Setter private double minDamage = 0D;//最低攻击力
 	@Getter @Setter private double maxDamage = 0D;//最高攻击力
 	@Getter @Setter private double pvpMinDamage = 0D;//PVP最低攻击力

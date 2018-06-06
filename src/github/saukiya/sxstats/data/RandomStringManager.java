@@ -13,6 +13,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import github.saukiya.sxstats.SXStats;
+import github.saukiya.sxstats.util.Config;
 
 /**
  * @author Saukiya
@@ -20,9 +21,9 @@ import github.saukiya.sxstats.SXStats;
  */
 
 public class RandomStringManager {
-	final static File randomFiles = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "Random");
-	final static File randomFile1 = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "Random"+ File.separator + "普通随机.yml");
-	final static File randomFile2 = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "Random"+ File.separator + "10级"+ File.separator+"普通-优秀-史诗.yml");
+	final static File randomFiles = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "RandomString");
+	final static File randomFile1 = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "RandomString"+ File.separator + "普通随机.yml");
+	final static File randomFile2 = new File("plugins" + File.separator + SXStats.getPlugin().getName() + File.separator + "RandomString"+ File.separator + "10级"+ File.separator+"普通-优秀-史诗.yml");
 
 	private static Map<String,List<String>> randomMap = new HashMap<>();
 	
@@ -49,7 +50,7 @@ public class RandomStringManager {
 						}
 						else {
 							str1 = str1.replace("<l:"+str+">", "");
-					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §4"+itemName+"§c 名字中的随机字符串 §4"+str+"§c 不存在!");
 						}
 					}
 				}
@@ -68,12 +69,17 @@ public class RandomStringManager {
 	}
 	
 	public static void loadRandomMap() {
-		randomMap.clear();
-		if (!randomFiles.exists() || randomFiles.listFiles().length == 0) {
-			createRandom();
+		if(Config.isRandomString()){
+			randomMap.clear();
+			if (!randomFiles.exists() || randomFiles.listFiles().length == 0) {
+				createRandom();
+			}
+			loadRandom(randomFiles);
+	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] 已读取 §c"+ randomMap.size() + " §r个随机字符串组");
 		}
-		loadRandom(randomFiles);
-        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a已读取 §b"+ randomMap.size() + " §a个随机字符串组");
+		else {
+	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c未开启 随机字符串功能");
+		}
 	}
 	
 	public static void loadRandom(File files){
@@ -86,7 +92,7 @@ public class RandomStringManager {
 				try {yaml.load(file);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c读取 "+file.getName().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator,"")+" 随机字符串时发生错误");}
 				for (String name : yaml.getKeys(false)){
 					if (randomMap.containsKey(name)){
-				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c不要随机字符串组名:§b "+ file.getName().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator,"")+File.separator+name+ "§c !");
+				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c不要重复随机字符组名:§4 "+ file.getName().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator,"")+File.separator+name+ "§c !");
 					}
 					if(yaml.get(name) instanceof String){
 						randomMap.put(name, Arrays.asList(yaml.getString(name)));

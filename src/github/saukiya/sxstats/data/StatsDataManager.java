@@ -47,10 +47,10 @@ public class StatsDataManager {
 					}
 				}
 				catch (Exception e){
-		        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a生命恢复系统崩溃 正在重新启动!");
+		        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §4生命恢复系统崩溃 正在重新启动!");
 					this.cancel();
 					healthRegenRunnable();
-		        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a启动完毕!");
+		        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c启动完毕!");
 		        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c如果此消息连续刷屏，请通过Yum重载本插件，并报告原作者QQ: 1940208750!");
 				}
 			}

@@ -17,7 +17,7 @@ public class Config {
 
 	final public static String ITEM_UPDATE_ENABLED = "ItemUpdate.Enabled";
 	final public static String HOLOGRAPHIC_ENABLED = "Holographic.Enabled";
-	final public static String HOLOGRAPHIC_TICK = "Holographic.Tick";
+	final public static String HOLOGRAPHIC_DISPLAY_TIME = "Holographic.DisplayTime";
 	final public static String HEALTH_NAME_VISIBLE_ENABLED = "Health.NameVisible.Enabled";
 	final public static String HEALTH_NAME_VISIBLE_SIZE = "Health.NameVisible.Size";
 	final public static String HEALTH_NAME_VISIBLE_CURRENT = "Health.NameVisible.Current";
@@ -39,8 +39,7 @@ public class Config {
 	final public static String CLEAR_DEFAULT_ATTRIBUTE_RESET = "ClearDefaultAttribute.Reset";
 	final public static String RPG_INVENTORY_ACTIVE_ITEMS = "RPGInventory.ActiveItems";
 	final public static String RPG_INVENTORY_PASSIVE_ITEMS = "RPGInventory.PassiveItems";
-	final public static String RANDOM_STRING_NAME = "RandomString.Name";
-	final public static String RANDOM_STRING_LORE = "RandomString.Lore";
+	final public static String RANDOM_STRING = "RandomString";
 
 	final public static String NAME_HAND_MAIN = "Stats.Hand.InMain.Name";//
 	final public static String NAME_HAND_OFF = "Stats.Hand.InOff.Name";//
@@ -124,8 +123,7 @@ public class Config {
 	@Getter private static boolean clearDefaultAttributeReset = false;
 	@Getter private static boolean rpgInventoryActiveItems;
 	@Getter private static boolean rpgInventoryPassiveItems;
-	@Getter private static boolean randomStringName;
-	@Getter private static boolean randomStringLore;
+	@Getter private static boolean randomString;
 
 	public static void loadConfig(){
 		//检测Config.yml是否存在
@@ -133,7 +131,7 @@ public class Config {
 			//创建Config.yml
 			createConfig();
 		}else {
-	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aFind Config.yml");
+	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] Find Config.yml");
 			config = new YamlConfiguration();
 			//读取config
 			try {config.load(configFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c读取config时发生错误");}
@@ -155,8 +153,7 @@ public class Config {
 		rpgInventoryActiveItems = config.getBoolean(RPG_INVENTORY_ACTIVE_ITEMS);
 		rpgInventoryPassiveItems = config.getBoolean(RPG_INVENTORY_PASSIVE_ITEMS);
 		banShieldInsteract = config.getBoolean(BAN_SHIELD_INTERACT);
-		randomStringName = config.getBoolean(RANDOM_STRING_NAME);
-		randomStringLore = config.getBoolean(RANDOM_STRING_LORE);
+		randomString = config.getBoolean(RANDOM_STRING);
 	}
 	
 	public static void createConfig(){
@@ -166,7 +163,7 @@ public class Config {
 		config.set(ITEM_UPDATE_ENABLED, false);
 		// 全息显示
 		config.set(HOLOGRAPHIC_ENABLED, true);
-		config.set(HOLOGRAPHIC_TICK, 40);
+		config.set(HOLOGRAPHIC_DISPLAY_TIME, 40);
 		// 血量头顶显示
 		config.set(HEALTH_NAME_VISIBLE_ENABLED, true);
 		config.set(HEALTH_NAME_VISIBLE_SIZE, 10);
@@ -200,8 +197,7 @@ public class Config {
 		config.set(RPG_INVENTORY_ACTIVE_ITEMS, false);
 		config.set(RPG_INVENTORY_PASSIVE_ITEMS, false);
 		// 随机字符串
-		config.set(RANDOM_STRING_NAME, true);
-		config.set(RANDOM_STRING_LORE, true);
+		config.set(RANDOM_STRING, true);
 
 		config.set(NAME_HAND_MAIN, "主手");
 		config.set(NAME_HAND_OFF, "副手");

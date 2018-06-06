@@ -211,7 +211,7 @@ public class Message {
 		if (!messageFile.exists()){
 				createMessage();
 		}else {
-	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aFind Message.yml");
+	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] Find Message.yml");
 		}
 		messages = new YamlConfiguration();
 		try {messages.load(messageFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();Bukkit.getConsoleSender().sendMessage("§8[§6HorseChair§8] §a读取message时发生错误");}
@@ -226,7 +226,7 @@ public class Message {
 				str = str.replace(replaceName, messages.getString(REPLACE_LIST+"."+replaceName));
 			}
 		}
-		return str.replace("&", "§");
+		return ChatColor.translateAlternateColorCodes('&',str);
 	}
 
     public static String getMsg(String loc, Object... args) {
@@ -242,11 +242,11 @@ public class Message {
 		}
 		//循环lore
 		for(int e= 0;e <list.size();e++){
-			String lore = list.get(e).replace("&", "§");
+			String lore = list.get(e);
 			for (int i= 0; i < args.length;i++){
 				lore = lore.replace("{" + i + "}", args[i]==null ? "null" : args[i].toString());
 			}
-			list.set(e,lore);
+			list.set(e,lore.replace("&", "§"));
 		}
 		return list;
 	}

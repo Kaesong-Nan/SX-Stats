@@ -199,7 +199,7 @@ public class OnDamageListener implements Listener {
 						h.delete();
 						hologramsList.remove(h);
 				}
-			}.runTaskLater(SXStats.getPlugin(), Config.getConfig().getInt(Config.HOLOGRAPHIC_TICK));
+			}.runTaskLater(SXStats.getPlugin(), Config.getConfig().getInt(Config.HOLOGRAPHIC_DISPLAY_TIME));
 		}
 		// 闪避+命中
 		if (StatsDataManager.probability(entityData.getDodge()-damagerData.getHitRate())){

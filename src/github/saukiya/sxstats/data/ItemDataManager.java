@@ -11,6 +11,7 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -43,7 +44,7 @@ public class ItemDataManager {
 	
 	public static void loadItemData() {
 		loadItemMap();
-		Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a已读取 §b"+itemMap.size()+" §a个物品");
+		Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] 已读取 §c"+itemMap.size()+" §r个物品");
 	}
 	
 	static public String clearColor(String lore){
@@ -65,14 +66,21 @@ public class ItemDataManager {
         int itemMaterial = 260;
         int itemDurability = 0;
         if(id != null){
-            if (id.contains(":")){
-            	itemMaterial = Integer.valueOf(id.split(":")[0]);
-            	itemDurability = Integer.valueOf(id.split(":")[1]);
-            }else{
-            	itemMaterial = Integer.valueOf(id);
+            if (id.contains(":") && id.split(":")[0].replaceAll("[^0-9]", "").length() > 0){
+            	String[] idSplit = id.split(":");
+            	if(idSplit[0].replaceAll("[^0-9]", "").length() >0 && idSplit[1].replaceAll("[^0-9]", "").length() > 0){
+                	itemMaterial = Integer.valueOf(idSplit[0].replaceAll("[^0-9]", ""));
+                	itemDurability = Integer.valueOf(idSplit[1].replaceAll("[^0-9]", ""));
+            	}
+            }else if(id.replaceAll("[^0-9]","").length() > 0){
+            	itemMaterial = Integer.valueOf(id.replaceAll("[^0-9]", ""));
             }
         }
 		ItemStack item = new ItemStack(itemMaterial,1,(short) itemDurability);
+		if(item.getType().name().equals(Material.AIR.name())){
+	        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §4"+itemName+"§c 的ID有误! 请检查是否写了双引号: §4"+id+"§c!");
+			return null;
+		}
 		ItemMeta meta = item.getItemMeta();
 		if (itemName != null) {
 			meta.setDisplayName(itemName.replace("&", "§"));
@@ -93,7 +101,7 @@ public class ItemDataManager {
 						meta.addEnchant(enchant, level, true);
 					}
 					else {
-				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a物品: "+itemName+" 的附魔: "+enchantName.split(":")[0]+"不是正常的附魔名称！");
+				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品: §4"+itemName+" §c的附魔: §4"+enchantName.split(":")[0]+"§c 不是正常的附魔名称！");
 					}
 				}
 			}
@@ -104,18 +112,18 @@ public class ItemDataManager {
 				if(itemFlag != null){
 					meta.addItemFlags(itemFlag);
 				}else {
-			        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §a物品: "+itemName+" 的Flag: "+flagName+"不是正常的Flag名称！");
+			        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品: §4"+itemName+" §c的Flag: §4"+flagName+"§c 不是正常的Flag名称！");
 				}
 			}
 		}
 		if (unbreakable != null){
 			meta.setUnbreakable(unbreakable);
 		}
-		if (color != null && item.getType().name().contains("LEATHER_")){
+		if (color != null && meta instanceof LeatherArmorMeta){
 			Color c = Color.fromRGB(Integer.valueOf(color.split(",")[0]),Integer.valueOf(color.split(",")[1]),Integer.valueOf(color.split(",")[2]));
 			((LeatherArmorMeta)meta).setColor(c);
 		}
-		if (skullName != null){
+		if (skullName != null && meta instanceof SkullMeta){
 			((SkullMeta)meta).setOwner(skullName);
 		}
 		item.setItemMeta(meta);
@@ -136,7 +144,7 @@ public class ItemDataManager {
 				}
 				for (String name:itemYaml.getKeys(false)) {
 					if (itemMap.containsKey(name)){
-						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c不要重复物品名: §6"+file.toString().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator, "")+File.separator+name +" §c!");
+						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c不要重复物品名: §4"+file.toString().replace("plugins"+File.separator+SXStats.getPlugin().getName()+File.separator, "")+File.separator+name +" §c!");
 					}
 					String itemName = itemYaml.getString(name+".Name");
 					List<String> ids = new ArrayList<>();
@@ -148,7 +156,7 @@ public class ItemDataManager {
 						ids.add(itemYaml.getString(name+".ID","260"));
 					}
 					if(ids.size() == 0){
-						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品: §6"+name +" §c没有 ID!");
+						Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品: §4"+name +" §c没有 ID!");
 						ids.add("260");
 					}
 					String id = getRandomString(itemName,ids.get(new Random().nextInt(ids.size())),new HashMap<>());
@@ -160,6 +168,9 @@ public class ItemDataManager {
 					String skullName = itemYaml.getString(name+".SkullName");
 					
 					ItemStack item = getItemStack(itemName, id, itemLore, enchantList, itemFlagList , unbreakable , color , skullName);
+					if(item == null){
+						continue;
+					}
 					int hashCode = item.getType().name().hashCode()/100 + item.getDurability();
 					
 					if (itemName != null) {
@@ -214,7 +225,7 @@ public class ItemDataManager {
         Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aCreate Item/Default.yml");
         YamlConfiguration itemData = new YamlConfiguration();
         itemData.set("默认一.Name", "<s:DefaultPrefix> &c炎之洗礼 <s:DefaultSuffix> <s:<l:品质>Color><l:品质>");
-        itemData.set("默认一.ID", "<s:<l:职业>ID>");
+        itemData.set("默认一.ID", Arrays.asList("<s:<l:职业>ID>"));
         itemData.set("默认一.Lore", Arrays.asList("&6品质等级: <s:<l:品质>Color><l:品质>","<s:<l:品质>职业>","&6限制手持: 主手","&6限制等级: <s:<l:品质>等级-10>级","&c攻击力: +<s:<l:品质>攻击-10>","<s:<l:品质>攻一-10>","<s:<l:品质>攻二-10>","<s:<l:品质>攻三-10>","<s:<l:品质>攻四-10>","&r","<s:<l:品质>宝石孔>","&7耐久度: <r:100_<s:<l:品质>耐久最低>>/<s:<l:品质>耐久>","<s:<l:品质>无法交易>"));
         itemData.set("默认一.Unbreakable", false);
         itemData.set("默认二.Name", "&c机械轻羽之靴");
@@ -261,28 +272,30 @@ public class ItemDataManager {
 	 */
 	public static String getRandomString(String itemName,String string,Map<String,String> lockMap){
 		if(string != null){
-			List<String> replaceLockStringList = getStringList("<l:",">",string);
-			for(String str : replaceLockStringList){
-				if(lockMap.containsKey(str)){
-					string = string.replace("<l:"+str+">", lockMap.get(str));
-				}else {
-					String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
-					if(!randomString.equals("%DeleteLore%")){
-						string = string.replace("<l:"+str+">", randomString);
-						// 记录到LockMap中
-						lockMap.put(str, randomString);
-					}
-					else {
-						string = string.replace("<l:"+str+">", "%DeleteLore%");
-				        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §b"+itemName+"§c 名字中的随机字符串 §b"+str+"§c 不存在!");
+			if(Config.isRandomString()){
+				List<String> replaceLockStringList = getStringList("<l:",">",string);
+				for(String str : replaceLockStringList){
+					if(lockMap.containsKey(str)){
+						string = string.replace("<l:"+str+">", lockMap.get(str));
+					}else {
+						String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
+						if(!randomString.equals("%DeleteLore%")){
+							string = string.replace("<l:"+str+">", randomString);
+							// 记录到LockMap中
+							lockMap.put(str, randomString);
+						}
+						else {
+							string = string.replace("<l:"+str+">", "%DeleteLore%");
+					        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §4"+itemName+"§c 名字中的随机字符串 §4"+str+"§c 不存在!");
+						}
 					}
 				}
-			}
-			// 普通随机
-			List<String> replaceStringList = getStringList("<s:",">",string);
-			for(String str : replaceStringList){
-				String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
-				string = string.replace("<s:"+str+">", randomString);
+				// 普通随机
+				List<String> replaceStringList = getStringList("<s:",">",string);
+				for(String str : replaceStringList){
+					String randomString = RandomStringManager.getRandomString(itemName,str,lockMap);
+					string = string.replace("<s:"+str+">", randomString);
+				}
 			}
 			// 数字随机
 			List<String> replaceNumberList = getStringList("<r:",">",string);
@@ -316,9 +329,13 @@ public class ItemDataManager {
 	        }
 	        item.setTypeId(itemMaterial);
 			item.setDurability((short) itemDurability);
+			if(item.getType().name().equals(Material.AIR.name())){
+		        Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §c物品 §4"+itemName+"§c 的ID有误! 请检查是否写了双引号: §4"+id+"§c!");
+				return null;
+			}
 			if (item.hasItemMeta() && item.getItemMeta().hasLore()){
 				ItemMeta meta = item.getItemMeta();
-				if(meta.hasDisplayName() && Config.isRandomStringName()){
+				if(meta.hasDisplayName()){
 					String name = getRandomString(itemName,meta.getDisplayName(),lockRandomMap);
 					meta.setDisplayName(name.replace("&", "§").replace("%DeleteLore%", ""));
 				}
@@ -355,7 +372,11 @@ public class ItemDataManager {
 				meta.setLore(loreList);
 				item.setItemMeta(meta);
 			}
-			return item;
+			if(Config.isDamageGauges()){
+				return ItemUtil.setAttackSpeed(item);
+			}else {
+				return item;
+			}
 		}else {
 			return null;
 		}
@@ -495,7 +516,7 @@ public class ItemDataManager {
 			List<String> ids = itemData.getIds();
 			String id = ids.get(0);
 			if(ids.size() > 1){
-				for(int i = 0 ; i < ids.size() ; i++){
+				for(int i = 1 ; i < ids.size() ; i++){
 					id += "/"+ids.get(i);
 				}
 			}

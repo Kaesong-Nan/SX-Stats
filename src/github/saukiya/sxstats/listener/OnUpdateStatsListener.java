@@ -219,10 +219,12 @@ public class OnUpdateStatsListener implements Listener {
 		new BukkitRunnable(){
 			@Override
 			public void run() {
-				StatsDataManager.loadHandData(entity);
-				StatsDataManager.loadEquipmentData(entity);
+				if(!entity.isDead()){
+					StatsDataManager.loadHandData(entity);
+					StatsDataManager.loadEquipmentData(entity);
+				}
 			}
-		}.runTaskLaterAsynchronously(SXStats.getPlugin(), 10);
+		}.runTaskLaterAsynchronously(SXStats.getPlugin(), 20);
 	}
 	// 怪物死亡事件
 	@EventHandler

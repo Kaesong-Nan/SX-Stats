@@ -1,8 +1,10 @@
 package github.saukiya.sxstats;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,7 +26,7 @@ import github.saukiya.sxstats.data.StatsDataManager;
 import github.saukiya.sxstats.inventory.StatsInventory;
 import github.saukiya.sxstats.listener.OnBanShieldInteractListener;
 import github.saukiya.sxstats.listener.OnDamageListener;
-import github.saukiya.sxstats.listener.OnDropListener;
+import github.saukiya.sxstats.listener.OnMythicmobsDropOrSpawnListener;
 import github.saukiya.sxstats.listener.OnExpChangeListener;
 import github.saukiya.sxstats.listener.OnInventoryClickListener;
 import github.saukiya.sxstats.listener.OnItemDurabilityListener;
@@ -56,39 +58,39 @@ public class SXStats extends JavaPlugin implements Listener{
         Bukkit.getPluginManager().registerEvents(new OnItemDurabilityListener(), this);
         Bukkit.getPluginManager().registerEvents(new OnItemSpawnListener(), this);
         Bukkit.getPluginManager().registerEvents(new OnUpdateStatsListener(), this);
-    	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §aServerPacket: "+Bukkit.getServer().getClass().getPackage().getName().replace(".", "-").split("-")[3]);
+    	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] ServerPacket: "+Bukkit.getServer().getClass().getPackage().getName().replace(".", "-").split("-")[3]);
         
     	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
         	new Placeholders(this).hook();
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §aFind PlacholderAPI!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] Find PlacholderAPI!");
         }
         else {
         	placeholder = false;
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] No Find PlacholderAPI!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §cNo Find PlacholderAPI!");
         }
         
         if (Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) {
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §aFind HolographicDisplays!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] Find HolographicDisplays!");
         }
         else {
         	holographic = false;
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] No Find HolographicDisplays!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §cNo Find HolographicDisplays!");
         }
         
         if (Bukkit.getPluginManager().isPluginEnabled("Mythicmobs")) {
-            Bukkit.getPluginManager().registerEvents(new OnDropListener(), this);
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §aFind Mythicmobs!");
+            Bukkit.getPluginManager().registerEvents(new OnMythicmobsDropOrSpawnListener(), this);
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] Find Mythicmobs!");
         }
         else {
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] No Find Mythicmobs!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §cNo Find Mythicmobs!");
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("RPGInventory")) {
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §aFind RPGInventory!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] Find RPGInventory!");
         }
         else {
         	rpgInventory = false;
-        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] No Find RPGInventory!");
+        	Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §cNo Find RPGInventory!");
         }
         
         Config.loadConfig();
@@ -97,15 +99,15 @@ public class SXStats extends JavaPlugin implements Listener{
 		RandomStringManager.loadRandomMap();
         ItemDataManager.loadItemData();
         StatsDataManager.healthRegenRunnable();
-		Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §a加载用时:"+(System.currentTimeMillis()-oldTimes)+"毫秒");
-        Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §a加载成功! 插件作者: Saukiya 插件联系: 1940208750");
+		Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] 加载用时: §c"+(System.currentTimeMillis()-oldTimes)+"§r 毫秒");
+        Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §c本插件首发于MCBBS! §4未经允许 严禁转载!");
+        Bukkit.getConsoleSender().sendMessage("["+this.getName()+"] §c加载成功! 插件作者: Saukiya 插件联系: 1940208750");
 	}
 
 	public void onDisable(){
 		OnDamageListener.getHologramsList().forEach(Hologram::delete);
 		OnDamageListener.getBossMap().values().forEach(BossBar::removeAll);
 		OnDamageListener.getNameMap().forEach((key,nameData) -> {
-			System.out.println(key);
 			Entity entity = Bukkit.getEntity(key);
 			if(entity != null && !entity.isDead()){
 				entity.setCustomName(nameData.getName());
@@ -117,67 +119,65 @@ public class SXStats extends JavaPlugin implements Listener{
 	public static Plugin getPlugin(){
 		return SXStats.getPlugin(SXStats.class);
 	}
-	public boolean onCommand(CommandSender sender, Command arg1, String label, String[] args) {
-        if (label.equalsIgnoreCase("sx") || label.equalsIgnoreCase("sxstats")){
-        	CommandType type = CommandType.CONSOLE;
+	
+    @Override
+    public boolean onCommand(CommandSender sender, Command arg1, String label, String[] args) {
+        if ("sx".equalsIgnoreCase(label) || label.equalsIgnoreCase(this.getName())) {
+            CommandType type = CommandType.CONSOLE;
             //判断是否是玩家
-            if (sender instanceof Player){
+            if (sender instanceof Player) {
                 //判断是否有权限
-                if (!sender.hasPermission(this.getName()+ ".use")){
-    				sender.sendMessage(Message.getMsg(Message.ADMIN_NO_PER_CMD));
+                if (!sender.hasPermission(this.getName() + ".use")) {
+                    sender.sendMessage(Message.getMsg(Message.ADMIN_NO_PER_CMD));
                     return true;
                 }
-            	type = CommandType.PLAYER;
+                type = CommandType.PLAYER;
             }
             //无参数
-            if (args.length==0){
-            	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6==========[&b "+ this.getName() +"&6 ]=========="));
-                for (java.lang.reflect.Method method : this.getClass().getDeclaredMethods()){
-                    if (!method.isAnnotationPresent(PlayerCommand.class)){
-                            continue;
+            if (args.length == 0) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&0-&8 --&7 ---&c ----&4 -----&b " + this.getName() + "&4 -----&c ----&7 ---&8 --&0 - &0By Saukiya"));
+                String color = "&7";
+                for (java.lang.reflect.Method method : this.getClass().getDeclaredMethods()) {
+                    if (!method.isAnnotationPresent(PlayerCommand.class)) {
+                        continue;
                     }
-                    PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
-                    if (contains(sub.type(),type) && sender.hasPermission(this.getName()+"." + sub.cmd())){
-                    	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " " +sub.cmd()+"&6"+sub.arg()+"&7-:&3 "+Message.getMsg("Command."+ sub.cmd())));
+                    PlayerCommand sub = method.getAnnotation(PlayerCommand.class);
+                    if (contains(sub.type(), type) && sender.hasPermission(this.getName() + "." + sub.cmd())) {
+                        color = color.equals("&7") ? "" : "&7";
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', MessageFormat.format(color+"/{0} {1}{2}&7 -&c {3}", label, sub.cmd(), sub.arg(), Message.getMsg("Command." + sub.cmd()))));
                     }
                 }
-            	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8>----------&7 Saukiya&8 ----------<"));
                 return true;
             }
-            for (java.lang.reflect.Method method:this.getClass().getDeclaredMethods()){
-                    if (!method.isAnnotationPresent(PlayerCommand.class)){
-                            continue;
-                    }
-                    PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
-                    if (!sub.cmd().equalsIgnoreCase(args[0])){
-                            continue;
-                    }
-        			if (!contains(sub.type(),type) || !sender.hasPermission(this.getName()+ "." + args[0])) {
-        				sender.sendMessage(Message.getMsg(Message.ADMIN_NO_PER_CMD));
-        	            return true;
-        			}
-                    try {
-                            method.invoke(this, sender,args);
-                    } catch (IllegalAccessException|InvocationTargetException e) {
-                            //
-            			e.printStackTrace();
-                    }
+            for (java.lang.reflect.Method method : this.getClass().getDeclaredMethods()) {
+                if (!method.isAnnotationPresent(PlayerCommand.class)) {
+                    continue;
+                }
+                PlayerCommand sub = method.getAnnotation(PlayerCommand.class);
+                if (!sub.cmd().equalsIgnoreCase(args[0])) {
+                    continue;
+                }
+                if (!contains(sub.type(), type) || !sender.hasPermission(this.getName() + "." + args[0])) {
+                    sender.sendMessage(Message.getMsg(Message.ADMIN_NO_PER_CMD));
                     return true;
+                }
+                try {
+                    method.invoke(this, sender, args);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                return true;
             }
             sender.sendMessage(Message.getMsg(Message.ADMIN_NO_CMD, args[0]));
             return true;
         }
         return false;
-	}
-	
-	public static boolean contains(CommandType[] type1, CommandType type2) {
-		for (int i = 0 ; i < type1.length ; i++) {
-			if (type1[i].equals(CommandType.ALL) || type1[i].equals(type2)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    }
+
+    public static boolean contains(CommandType[] type1, CommandType type2) {
+        return IntStream.range(0, type1.length).anyMatch(i -> type1[i].equals(CommandType.ALL) || type1[i].equals(type2));
+    }
+    
 	@PlayerCommand(cmd="stats",type=CommandType.PLAYER)
 	public void onStatsCommand(CommandSender sender,String args[]){
         StatsInventory.openStatsInventory((Player) sender);
@@ -226,7 +226,7 @@ public class SXStats extends JavaPlugin implements Listener{
 	}
 	
 	// 保存指令执行方法
-	@PlayerCommand(cmd="save",arg=" <itemName>")
+	@PlayerCommand(cmd="save",arg=" <itemName>",type=CommandType.PLAYER)
 	public void onSaveCommand(CommandSender sender,String args[]){
 		if (args.length < 2) {
 			sender.sendMessage(Message.getMsg(Message.ADMIN_NO_FORMAT));

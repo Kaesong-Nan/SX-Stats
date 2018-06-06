@@ -12,6 +12,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import github.saukiya.sxstats.SXStats;
 
@@ -73,10 +74,7 @@ public class ItemUtil {
 	public static double getAttackSpeed(ItemStack item,double... addSpeed){
 		double attackSpeed = -0.30D;
 		String itemType = item.getType().name();
-		if(itemType.contains("BOW")){
-			attackSpeed = -0.20D;
-		}
-		else if(itemType.contains("_PICKAXE")){
+		if(itemType.contains("_PICKAXE")){
 			attackSpeed = -0.70D;
 		}
 		else if (itemType.contains("_AXE")){
@@ -98,7 +96,7 @@ public class ItemUtil {
 	}
 	
 	public static ItemStack setAttackSpeed(ItemStack item, double... speed){
-		if(item != null){
+		if(item != null && !item.getType().name().equals("AIR")){
 			try {
 				Object nmsItem = xAsNMSCopay.invoke(xCraftItemStack,ItemUtil.setNBT(item, "Clear", "yes"+Config.isDamageGauges()));
 				Object compound = ((Boolean)xHasTag.invoke(nmsItem)) ? xGetTag.invoke(nmsItem): xNBTTagCompound.newInstance();
@@ -135,17 +133,6 @@ public class ItemUtil {
 				Object nmsItem = xAsNMSCopay.invoke(xCraftItemStack,ItemUtil.setNBT(item, "Clear", "yes"+Config.isDamageGauges()));
 				Object compound = ((Boolean)xHasTag.invoke(nmsItem)) ? xGetTag.invoke(nmsItem): xNBTTagCompound.newInstance();
 				Object modifiers = xNBTTagList.newInstance();
-				if(Config.isDamageGauges()){
-					Object attackSpeed = xNBTTagCompound.newInstance();
-					xSet.invoke(attackSpeed, "AttributeName",xNewNBTTagString.newInstance("generic.attackSpeed"));
-					xSet.invoke(attackSpeed, "Name",xNewNBTTagString.newInstance("AttackSpeed"));
-					xSet.invoke(attackSpeed, "Amount",xNewNBTTagDouble.newInstance(getAttackSpeed(item)));
-					xSet.invoke(attackSpeed, "Operation",xNewNBTTagInt.newInstance(1));
-					xSet.invoke(attackSpeed, "UUIDLeast",xNewNBTTagInt.newInstance(20000));
-					xSet.invoke(attackSpeed, "UUIDMost",xNewNBTTagInt.newInstance(1000));
-					xSet.invoke(attackSpeed, "Slot",xNewNBTTagString.newInstance("mainhand"));
-					xAdd.invoke(modifiers, attackSpeed);
-				}
 				xSet.invoke(compound, "AttributeModifiers" ,modifiers);
 				xSetTag.invoke(nmsItem, compound);
 				ItemMeta meta = ((ItemStack) xAsBukkitCopy.invoke(xCraftItemStack, nmsItem)).getItemMeta();
@@ -312,7 +299,7 @@ public class ItemUtil {
 			} catch (ClassNotFoundException | NoSuchMethodException | SecurityException e1) {
 				e1.printStackTrace();
 			}
-        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] §aLoad ItemUtil! ");
+        	Bukkit.getConsoleSender().sendMessage("["+SXStats.getPlugin().getName()+"] Load ItemUtil! ");
 		}
 	}
 }
